@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الـ 20 شبح - ساهر</title>
+    <style>
+        :root { 
+            --neon-purple: #bc13fe; 
+        }
+        
+        body {
+            margin: 0;
+            background: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        .header {
+            background: #111;
+            padding: 15px;
+            border-bottom: 3px solid var(--neon-purple);
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.6);
+        }
+        
+        #score { 
+            color: var(--neon-purple); 
+            font-weight: bold; 
+            font-size: 1.5rem; 
+            text-shadow: 0 0 10px var(--neon-purple);
+        }
+        
+        #ghost {
+            position: absolute;
+            font-size: 60px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 15px var(--neon-purple));
+            z-index: 100;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--neon-purple);
+            z-index: 1000;
+            width: 80%;
+            max-width: 320px;
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.4);
+        }
+        
+        h1 {
+            color: var(--neon-purple);
+            text-shadow: 0 0 10px var(--neon-purple);
+        }
+        
+        button {
+            background: var(--neon-purple);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 0 15px var(--neon-purple);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>النقاط: <span id="score">0</span> / 20</div>
+        <div>الوقت: <span id="timer">15:00</span></div>
+    </div>
+
+    <div id="start-screen" class="overlay">
+        <h1>مهمة الـ 20 شبح 👻</h1>
+        <p>الهدف: اصطاد 20 شبح<br>الوقت: 15 دقيقة<br>السرعة: 500ms</p>
+        <button onclick="startGame()">ابدأ لتحدي يا بطل 🏹</button>
+    </div>
+
+    <div id="ghost" style="display: none;">👻</div>
+
+    <script>
+        let score = 0;
+        let totalSeconds = 15 * 60; 
+        let gameInterval;
+        let autoMove;
+        const targetScore = 20; // التعديل هنا لـ 20 نقطة
+        
+        const ghostEl = document.getElementById('ghost');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        const startScreen = document.getElementById('start-screen');
+
+        function moveGhost() {
+            const maxX = window.innerWidth - 80;
+            const maxY = window.innerHeight - 150;
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * (maxY - 100)) + 100;
+            ghostEl.style.left = randomX + 'px';
+            ghostEl.style.top = randomY + 'px';
+        }
+
+        function hit(e) {
+            if(e) e.preventDefault();
+            score++;
+            scoreEl.innerText = score;
+            
+            if (score >= targetScore) {
+                winGame();
+            } else {
+                moveGhost();
+            }
+        }
+
+        ghostEl.addEventListener('mousedown', hit);
+        ghostEl.addEventListener('touchstart', hit);
+
+        function updateTimerDisplay() {
+            let mins = Math.floor(totalSeconds / 60);
+            let secs = totalSeconds % 60;
+            timerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function startGame() {
+            score = 0;
+            totalSeconds = 15 * 60;
+            scoreEl.innerText = score;
+            updateTimerDisplay();
+            startScreen.style.display = 'none';
+            ghostEl.style.display = 'block';
+            moveGhost();
+
+            gameInterval = setInterval(() => {
+                totalSeconds--;
+                updateTimerDisplay();
+                if (totalSeconds <= 0) endGame();
+            }, 1000);
+            
+            autoMove = setInterval(() => {
+                if(totalSeconds > 0) moveGhost();
+            }, 500); 
+        }
+
+        function winGame() {
+            clearInterval(gameInterval);
+            clearInterval(autoMove);
+            ghostEl.style.display = 'none';
+            startScreen.style.display = 'block';
+            startScreen.innerHTML = `
+                <h1 style="color: var(--neon-purple);">تمت المهمة! 🏆</h1>
+                <p>عاش يا ساهر! صيدت الـ 20 شبح.</p>
+                <button onclick="location.reload()">لعب تاني 🔄</button>
+            `;
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(autoMove);
+            ghostEl.style.display = 'none';
+            startScreen.style.display = 'block';
+            startScreen.innerHTML = `
+                <h1 style="color: #ff0000;">خلص الوقت!</h1>
+                <p>جبت ${score} من 20.</p>
+                <button onclick="location.reload()">حاول تاني 💪</button>
+            `;
+        }
+    </script>
+</body>
+</html>
